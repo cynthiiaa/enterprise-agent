@@ -1,5 +1,5 @@
 use axum::{body::Body, extract::{Request, State}, http::StatusCode, middleware::Next, response::Response};
-use std::{collections:HashMap, sync::{Arc, Mutex}, time::{Duration, Instant}};
+use std::{collections::HashMap, sync::{Arc, Mutex}, time::{Duration, Instant}};
 
 pub struct RateLimiter {
     pub visits: Mutex<HashMap<String, (Instant, u32)>>

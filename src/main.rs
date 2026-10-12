@@ -21,15 +21,17 @@ async fn main() {
         crate::telemetry::start_telemetry_worker(telemetry_rx, "localhost:9092", "llm_audit_logs".to_string()).await;
     });
     let state = AppState { telemetry_tx };
-    let rate_limiter_state = Arc::new(middleware::RateLimiter::new());
+    let rate_limiter_state = Arc::new(middleware::rate_limit::RateLimiter::new());
     let app = Router::new()
                 .route("/", get(home_handler))
                 .route("/api/stream", post(proxy::proxy_llm_stream))
+                .with_state(state)
                 .layer(axum_middleware::from_fn_with_state(
                     rate_limiter_state,
-                    middleware::guardrail_middleware
+                    middleware::rate_limit::check_quota
                 ))
-                .with_state(state);
+                .layer(axum_middleware::from_fn(middleware::guardrails::inspect_prompt)); // inspect JSON for injections
+                
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("Agent backend listening on http://{}", addr);
 
