@@ -13,3 +13,11 @@ Built out the `telemetry.rs` script. Since the LLM proxy is streaming data back 
 Depending on the event received, there are three different actions to take. When the session is `Complete`, a new asynchronous tokio task spaws. Inside this task, the complete `ChatAuditRecord` is serialized into JSON and the JSON payload is sent to a specific Kafka topic using the `user_id` as the Kafka partition key.
 
 I'm also in the process of splitting up `src/middleware.rs`. There's a `rate_limit.rs` script that implements a simple in-memory rate limiter.
+
+# October 12, 2026
+
+Still building out the middleware for this project. The `telemetry.rs` script handles the asynchronous logging of user interactions to a Kafka broker. The event loop listens for new events from the web server and listens to a 30-second timer. This timer sweeps the HashMap for sessions older than 5 minutes, tags them, and ships them to Kafka to prevent memory leaks.
+
+`guardrails.rs` intercepts incoming HTTP requests to check for prompt injections before sending them to an LLM.
+
+`main.rs` creates an `mpsc` channel with a buffer of 50K messages.
